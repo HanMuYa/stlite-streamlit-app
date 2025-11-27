@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <title>Stlite App</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@stlite/browser@0.83.0/build/stlite.css"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import { mount } from "https://cdn.jsdelivr.net/npm/@stlite/browser@0.83.0/build/stlite.js";
+      let pyodile = mount(
+  {
+    requirements: ["matplotlib", "mplcyberpunk", "geopandas", "pyecharts", "streamlit-echarts"], // Packages to install
+    entrypoint: "streamlit_app.py", // The target file of the `streamlit run` command
+    files: {
+      "streamlit_app.py": `
+import streamlit as st
+import matplotlib.pyplot as plt
+import numpy as np
+import geopandas as gpd
+import mplcyberpunk
+
+from pyodide.http import pyfetch
+import js
+import os
+
+if os.path.exists("NotoSansCJKsc-Regular.otf"):
+    st.toast("NotoSansCJKsc-Regular.otf 字体已存在！")
+else:
+    response = await pyfetch("https://raw.githubusercontent.com/googlefonts/noto-cjk/main/Sans/OTF/SimplifiedChinese/NotoSansCJKsc-Regular.otf")
+    font_data = await response.bytes()
+    with open("NotoSansCJKsc-Regular.otf", "wb") as f:
+        f.write(font_data)
+    st.toast("NotoSansCJKsc-Regular.otf 正在加载！")
+
+from matplotlib.font_manager import FontProperties
+                
+# 设置中文字体
+chinese_font = FontProperties(fname='NotoSansCJKsc-Regular.otf')
+
+import matplotlib.font_manager as fm
+
+# 添加自定义字体
+fm.fontManager.addfont('NotoSansCJKsc-Regular.otf')
+				
+plt.rcParams['font.sans-serif'] = [chinese_font.get_name(), 'SimHei', 'Microsoft YaHei', 'DejaVu Sans']
+plt.rcParams['axes.unicode_minus'] = False
+
+# plt.style.use("cyberpunk")
+
+gdf = gpd.read_file("https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json")
+
+size = st.slider("Sample size", 100, 1000)
+
+arr = np.random.normal(1, 1, size=size)
+fig, ax = plt.subplots()
+ax.hist(arr, bins=20)
+
+st.pyplot(fig)
+
+fig, ax = plt.subplots()
+gdf.plot(ax=ax)
+ax.set_title("这是中文标题")
+
+st.pyplot(fig, use_container_width = True)
+`,
+    },
+    streamlitConfig: {
+      // Streamlit configuration
+      "client.toolbarMode": "viewer",
+    },
+  },
+  document.getElementById("root"),
+);
+    </script>
+  </body>
+</html>
